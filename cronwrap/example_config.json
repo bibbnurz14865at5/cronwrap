@@ -1,0 +1,12 @@
+{
+  "command": "/usr/local/bin/backup.sh --full",
+  "job_name": "nightly-database-backup",
+  "timeout": 3600,
+  "slack_webhook_url": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+  "email_recipients": [
+    "ops@example.com",
+    "admin@example.com"
+  ],
+  "notify_on_success": false,
+  "notify_on_failure": true
+}
