@@ -1,12 +1,13 @@
 {
-  "command": "/usr/local/bin/backup.sh --full",
-  "job_name": "nightly-database-backup",
-  "timeout": 3600,
   "slack_webhook_url": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
-  "email_recipients": [
-    "ops@example.com",
-    "admin@example.com"
-  ],
+  "email_recipients": ["ops@example.com", "alerts@example.com"],
+  "email_sender": "cronwrap@example.com",
+  "smtp_host": "smtp.example.com",
+  "smtp_port": 587,
+  "smtp_username": "cronwrap@example.com",
+  "smtp_password": "s3cr3t",
+  "smtp_use_tls": true,
+  "timeout_seconds": 3600,
   "notify_on_success": false,
-  "notify_on_failure": true
+  "log_output": true
 }
