@@ -1,66 +1,44 @@
-"""Entry-point CLI for cronwrap.
-
-Usage example::
-
-    cronwrap --config /etc/cronwrap.json -- /usr/bin/backup.sh --full
-"""
-
-from __future__ import annotations
+"""CLI entry-point for cronwrap."""
 
 import argparse
 import sys
 from typing import List, Optional
 
 from cronwrap.config import CronwrapConfig, from_env, from_json_file
+from cronwrap.lock import JobLock, LockError
 from cronwrap.notifier import dispatch
-from cronwrap.runner import JobResult, run_job
+from cronwrap.runner import run_job
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="cronwrap",
-        description="Wrap a cron command and alert on failure.",
+        description="Wrap a cron command with failure alerting.",
     )
-    parser.add_argument(
-        "--config", "-c",
-        metavar="FILE",
-        help="Path to a JSON config file (falls back to environment variables).",
-    )
-    parser.add_argument(
-        "--timeout", "-t",
-        type=int,
-        default=None,
-        metavar="SECONDS",
-        help="Kill the job after this many seconds.",
-    )
-    parser.add_argument(
-        "--notify-on-success",
-        action="store_true",
-        default=False,
-        help="Send a notification even when the job succeeds.",
-    )
-    parser.add_argument(
-        "command",
-        nargs=argparse.REMAINDER,
-        help="Command to run (use -- to separate from cronwrap flags).",
-    )
+    parser.add_argument("--config", metavar="FILE", help="Path to JSON config file.")
+    parser.add_argument("--job", metavar="NAME", help="Human-readable job name.", default="cron-job")
+    parser.add_argument("--timeout", metavar="SECS", type=int, default=0, help="Kill job after N seconds.")
+    parser.add_argument("--lock", action="store_true", help="Prevent overlapping executions via file lock.")
+    parser.add_argument("--lock-dir", metavar="DIR", default="/tmp", help="Directory for lock files.")
+    parser.add_argument("--lock-timeout", metavar="SECS", type=int, default=0, help="Seconds to wait for lock.")
+    parser.add_argument("command", nargs=argparse.REMAINDER, help="Command to run (after --)")
     return parser
 
 
-def _load_config(config_path: Optional[str]) -> CronwrapConfig:
-    if config_path:
-        return from_json_file(config_path)
+def _load_config(path: Optional[str]) -> CronwrapConfig:
+    if path:
+        return from_json_file(path)
     return from_env()
 
 
 def _strip_double_dash(args: List[str]) -> List[str]:
-    """Remove a leading '--' separator that argparse leaves in REMAINDER."""
+    """Remove a leading '--' separator from the command list if present."""
     if args and args[0] == "--":
         return args[1:]
     return args
 
 
-def main(argv: Optional[List[str]] = None) -> int:
+def main(argv: Optional[List[str]] = None) -> int:  # noqa: C901
     parser = build_parser()
     ns = parser.parse_args(argv)
 
@@ -69,15 +47,33 @@ def main(argv: Optional[List[str]] = None) -> int:
         parser.error("No command specified.")
 
     cfg = _load_config(ns.config)
-    result: JobResult = run_job(command, timeout=ns.timeout)
 
-    if not result.success or ns.notify_on_success:
+    # ------------------------------------------------------------------ lock
+    lock: Optional[JobLock] = None
+    if ns.lock:
+        lock = JobLock(ns.job, lock_dir=ns.lock_dir, timeout=ns.lock_timeout)
         try:
-            dispatch(cfg, result.summary())
-        except Exception as exc:  # noqa: BLE001
-            print(f"[cronwrap] notification error: {exc}", file=sys.stderr)
+            lock.acquire()
+        except LockError as exc:
+            print(f"[cronwrap] {exc}", file=sys.stderr)
+            return 1
 
-    return 0 if result.success else 1
+    # ------------------------------------------------------------------ run
+    try:
+        result = run_job(command, timeout=ns.timeout or None)
+    finally:
+        if lock is not None:
+            lock.release()
+
+    print(result.summary(ns.job))
+
+    if not result.success:
+        try:
+            dispatch(cfg, ns.job, result)
+        except Exception as exc:  # pragma: no cover
+            print(f"[cronwrap] notification failed: {exc}", file=sys.stderr)
+
+    return 0 if result.success else result.returncode or 1
 
 
 if __name__ == "__main__":  # pragma: no cover
