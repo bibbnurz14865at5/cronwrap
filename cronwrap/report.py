@@ -1,5 +1,4 @@
-"""Human-readable reporting utilities built on top of JobHistory."""
-
+"""Human-readable reporting helpers for job history."""
 from __future__ import annotations
 
 from typing import List
@@ -7,48 +6,52 @@ from typing import List
 from cronwrap.history import HistoryEntry, JobHistory
 
 
-def _pct(part: int, total: int) -> str:
-    if total == 0:
+def _pct(numerator: int, denominator: int) -> str:
+    if denominator == 0:
         return "n/a"
-    return f"{part / total * 100:.1f}%"
+    return f"{100 * numerator / denominator:.1f}%"
 
 
-def summarise_job(history: JobHistory, job_name: str, last_n: int = 10) -> str:
-    """Return a plain-text summary of the last *last_n* runs for *job_name*."""
-    entries: List[HistoryEntry] = history.load_for_job(job_name)[-last_n:]
+def summarise_job(job_name: str, history_dir: str, last_n: int = 50) -> dict:
+    """Return a summary dict for a single job."""
+    jh = JobHistory(history_dir)
+    entries: List[HistoryEntry] = jh.load(job_name)[-last_n:]
+
     if not entries:
-        return f"No history found for job '{job_name}'."
+        return {"job": job_name, "runs": 0, "success_rate": "n/a", "last_status": None,
+                "avg_duration_s": None, "last_ran": None}
 
-    total = len(entries)
-    failures = sum(1 for e in entries if e.exit_code != 0 or e.timed_out)
-    successes = total - failures
-    avg_duration = sum(e.duration for e in entries) / total
+    successes = sum(1 for e in entries if e.success)
+    durations = [e.duration_s for e in entries if e.duration_s is not None]
+    avg_dur = round(sum(durations) / len(durations), 2) if durations else None
     last = entries[-1]
 
-    lines = [
-        f"Job: {job_name}",
-        f"Runs analysed : {total} (last {last_n} max)",
-        f"Successes     : {successes} ({_pct(successes, total)})",
-        f"Failures      : {failures} ({_pct(failures, total)})",
-        f"Avg duration  : {avg_duration:.2f}s",
-        f"Last run      : {last.timestamp}  exit={last.exit_code}"
-        + ("  [TIMEOUT]" if last.timed_out else ""),
+    return {
+        "job": job_name,
+        "runs": len(entries),
+        "success_rate": _pct(successes, len(entries)),
+        "last_status": "ok" if last.success else "fail",
+        "avg_duration_s": avg_dur,
+        "last_ran": last.timestamp,
+    }
+
+
+def summarise_all(history_dir: str, last_n: int = 50) -> List[dict]:
+    """Return summary dicts for every job found in *history_dir*."""
+    import os
+
+    if not os.path.isdir(history_dir):
+        return []
+
+    job_names = [
+        fname[:-len(".jsonl")]
+        for fname in os.listdir(history_dir)
+        if fname.endswith(".jsonl")
     ]
-    return "\n".join(lines)
+    return [summarise_job(name, history_dir, last_n) for name in sorted(job_names)]
 
 
-def summarise_all(history: JobHistory) -> str:
-    """Return a plain-text summary table for every distinct job in history."""
-    entries = history.load_all()
-    if not entries:
-        return "No history recorded yet."
-
-    job_names = list(dict.fromkeys(e.job_name for e in entries))  # preserve order
-    sections = [summarise_job(history, name) for name in job_names]
-    divider = "-" * 40
-    return ("\n" + divider + "\n").join(sections)
-
-
-def tail(history: JobHistory, job_name: str, n: int = 5) -> List[HistoryEntry]:
-    """Return the *n* most recent entries for *job_name*."""
-    return history.load_for_job(job_name)[-n:]
+def tail(job_name: str, history_dir: str, n: int = 10) -> List[HistoryEntry]:
+    """Return the last *n* history entries for *job_name*."""
+    jh = JobHistory(history_dir)
+    return jh.load(job_name)[-n:]
