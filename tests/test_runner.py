@@ -10,6 +10,7 @@ from cronwrap.runner import run_job, JobResult
 # ---------------------------------------------------------------------------
 
 def _make_result(**kwargs) -> JobResult:
+    """Return a JobResult with sensible defaults, overridden by *kwargs*."""
     defaults = dict(
         command=["echo", "hi"],
         returncode=0,
@@ -56,6 +57,12 @@ def test_job_result_summary_timeout():
     assert "TIMEOUT" in r.summary()
 
 
+def test_job_result_summary_includes_duration():
+    """summary() should always include the wall-clock duration."""
+    r = _make_result(duration_seconds=1.23)
+    assert "1.23" in r.summary()
+
+
 # ---------------------------------------------------------------------------
 # run_job integration (uses real subprocess)
 # ---------------------------------------------------------------------------
@@ -89,3 +96,10 @@ def test_run_job_duration_recorded():
     result = run_job([sys.executable, "-c", "pass"])
     assert isinstance(result.duration_seconds, float)
     assert result.duration_seconds >= 0
+
+
+def test_run_job_command_stored():
+    """run_job should preserve the original command list on the result."""
+    cmd = [sys.executable, "-c", "pass"]
+    result = run_job(cmd)
+    assert result.command == cmd
