@@ -1,0 +1,9 @@
+{
+  "slack_webhook_url": "https://hooks.slack.com/services/EXAMPLE",
+  "email_to": "ops@example.com",
+  "email_from": "cronwrap@example.com",
+  "smtp_host": "localhost",
+  "smtp_port": 25,
+  "history_dir": "/var/lib/cronwrap/history",
+  "digest_format": "text"
+}
