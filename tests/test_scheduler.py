@@ -42,6 +42,11 @@ def test_parse_field_out_of_range_raises():
         _parse_field("60", 0, 59)
 
 
+def test_parse_field_range_out_of_range_raises():
+    with pytest.raises(ScheduleError):
+        _parse_field("0-60", 0, 59)
+
+
 # ---------------------------------------------------------------------------
 # validate_cron / parse_cron
 # ---------------------------------------------------------------------------
@@ -108,3 +113,8 @@ def test_next_run_advances_day():
 def test_next_run_returns_datetime():
     nxt = next_run("*/10 * * * *")
     assert isinstance(nxt, datetime)
+
+
+def test_next_run_invalid_cron_raises():
+    with pytest.raises(ScheduleError):
+        next_run("invalid cron expression")
