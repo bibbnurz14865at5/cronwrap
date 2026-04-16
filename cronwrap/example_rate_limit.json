@@ -1,0 +1,4 @@
+{
+  "cooldown_seconds": 1800,
+  "state_file": "/tmp/cronwrap_ratelimit.json"
+}
