@@ -1,0 +1,5 @@
+{
+  "url": "https://example.com/hooks/cronwrap",
+  "timeout": 10,
+  "secret_header": "mysecrettoken"
+}
