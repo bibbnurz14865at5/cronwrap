@@ -1,0 +1,5 @@
+{
+  "critical": ["backup", "billing"],
+  "nightly": ["backup", "report"],
+  "billing": ["billing"]
+}
