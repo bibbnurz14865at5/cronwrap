@@ -1,0 +1,3 @@
+{
+  "audit_log_path": "/var/log/cronwrap/audit.log"
+}
