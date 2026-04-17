@@ -1,0 +1,7 @@
+{
+  "max_retries": 4,
+  "base_delay": 2.0,
+  "multiplier": 2.0,
+  "max_delay": 30.0,
+  "jitter": true
+}
