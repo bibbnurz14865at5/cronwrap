@@ -1,0 +1,5 @@
+{
+  "job_name": "nightly_report",
+  "max_instances": 2,
+  "state_dir": "/var/run/cronwrap/concurrency"
+}
