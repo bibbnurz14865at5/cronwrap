@@ -1,0 +1,5 @@
+{
+  "job_name": "report_job",
+  "depends_on": ["fetch_data", "preprocess"],
+  "require_success_within_seconds": 3600
+}
