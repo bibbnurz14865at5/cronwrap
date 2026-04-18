@@ -1,0 +1,5 @@
+[
+  {"job_name": "backup", "priority": "critical", "weight": 10},
+  {"job_name": "report", "priority": "normal", "weight": 0},
+  {"job_name": "cleanup", "priority": "low", "weight": 0}
+]
