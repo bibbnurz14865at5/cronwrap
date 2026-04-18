@@ -27,7 +27,14 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _load_config(path: Optional[str]) -> CronwrapConfig:
     if path:
-        return from_json_file(path)
+        try:
+            return from_json_file(path)
+        except FileNotFoundError:
+            print(f"[cronwrap] config file not found: {path}", file=sys.stderr)
+            sys.exit(1)
+        except Exception as exc:
+            print(f"[cronwrap] failed to load config: {exc}", file=sys.stderr)
+            sys.exit(1)
     return from_env()
 
 
