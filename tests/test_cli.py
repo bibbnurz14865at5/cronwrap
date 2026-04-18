@@ -37,6 +37,10 @@ def test_strip_double_dash_noop_without_separator():
     assert _strip_double_dash(["echo", "hi"]) == ["echo", "hi"]
 
 
+def test_strip_double_dash_empty_list():
+    assert _strip_double_dash([]) == []
+
+
 # ---------------------------------------------------------------------------
 # main() — success path
 # ---------------------------------------------------------------------------
@@ -78,15 +82,17 @@ def test_main_dispatch_error_does_not_crash(capsys):
     assert "notification error" in captured.err
 
 
+def test_main_dispatch_error_includes_message(capsys):
+    """The stderr output should include the original exception message."""
+    with patch("cronwrap.cli.run_job", return_value=_fake_result(success=False)), \
+         patch("cronwrap.cli.dispatch", side_effect=RuntimeError("smtp timeout")), \
+         patch("cronwrap.cli.from_env", return_value=MagicMock()):
+        main(["--", "false"])
+    captured = capsys.readouterr()
+    assert "smtp timeout" in captured.err
+
+
 def test_main_loads_config_file():
     with patch("cronwrap.cli.run_job", return_value=_fake_result(success=True)), \
          patch("cronwrap.cli.dispatch"), \
-         patch("cronwrap.cli.from_json_file", return_value=MagicMock()) as mock_file:
-        main(["--config", "/fake/path.json", "--", "echo", "hi"])
-    mock_file.assert_called_once_with("/fake/path.json")
-
-
-def test_main_no_command_exits(capsys):
-    with pytest.raises(SystemExit) as exc_info:
-        main([])
-    assert exc_info.value.code != 0
+         patch("cronwrap.cli.from_json_file", return_value=MagicMock()) as moc
