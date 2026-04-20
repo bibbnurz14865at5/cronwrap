@@ -36,6 +36,10 @@ class CapturedOutput:
             truncated=data.get("truncated", False),
         )
 
+    def is_empty(self) -> bool:
+        """Return True if both stdout and stderr are empty."""
+        return not self.stdout and not self.stderr
+
 
 def capture(stdout: str, stderr: str, max_bytes: int = DEFAULT_MAX_BYTES) -> CapturedOutput:
     """Truncate stdout/stderr to max_bytes each and return a CapturedOutput."""
