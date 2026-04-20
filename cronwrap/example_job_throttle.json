@@ -1,0 +1,5 @@
+{
+  "job_name": "daily-report",
+  "min_interval_seconds": 3600,
+  "state_dir": "/var/lib/cronwrap/throttle"
+}
