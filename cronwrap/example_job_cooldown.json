@@ -1,0 +1,5 @@
+{
+  "job_name": "nightly-report",
+  "min_gap_seconds": 3600,
+  "state_dir": "/var/lib/cronwrap/cooldown"
+}
