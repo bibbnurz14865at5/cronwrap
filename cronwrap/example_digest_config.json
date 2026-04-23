@@ -5,5 +5,8 @@
   "smtp_host": "localhost",
   "smtp_port": 25,
   "history_dir": "/var/lib/cronwrap/history",
-  "digest_format": "text"
+  "digest_format": "text",
+  "digest_schedule": "daily",
+  "max_history_days": 30,
+  "include_successful_jobs": false
 }
