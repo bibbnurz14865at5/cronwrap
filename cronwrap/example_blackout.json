@@ -1,0 +1,16 @@
+{
+  "job_name": "nightly-report",
+  "windows": [
+    {
+      "start": "22:00",
+      "end": "06:00",
+      "label": "overnight maintenance"
+    },
+    {
+      "start": "12:00",
+      "end": "13:00",
+      "weekdays": [0, 1, 2, 3, 4],
+      "label": "weekday lunch"
+    }
+  ]
+}
