@@ -1,0 +1,6 @@
+{
+  "job_name": "daily-report",
+  "max_retries": 5,
+  "retry_delay": 30.0,
+  "state_dir": "/var/lib/cronwrap/retry"
+}
