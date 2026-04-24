@@ -37,6 +37,30 @@ class TimeoutPolicy:
             return cls.from_dict(json.load(fh))
 
     # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
+
+    def __post_init__(self) -> None:
+        """Validate field values after initialisation."""
+        if self.timeout_seconds is not None and self.timeout_seconds <= 0:
+            raise ValueError(
+                f"timeout_seconds must be a positive integer, got {self.timeout_seconds}"
+            )
+        if self.warn_seconds is not None and self.warn_seconds <= 0:
+            raise ValueError(
+                f"warn_seconds must be a positive integer, got {self.warn_seconds}"
+            )
+        if (
+            self.timeout_seconds is not None
+            and self.warn_seconds is not None
+            and self.warn_seconds >= self.timeout_seconds
+        ):
+            raise ValueError(
+                f"warn_seconds ({self.warn_seconds}) must be less than "
+                f"timeout_seconds ({self.timeout_seconds})"
+            )
+
+    # ------------------------------------------------------------------
     # Serialisation
     # ------------------------------------------------------------------
 
