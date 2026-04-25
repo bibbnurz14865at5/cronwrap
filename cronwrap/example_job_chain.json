@@ -1,0 +1,25 @@
+{
+  "chain_name": "nightly_pipeline",
+  "steps": [
+    {
+      "job_name": "extract",
+      "on_success": "transform",
+      "on_failure": null
+    },
+    {
+      "job_name": "transform",
+      "on_success": "load",
+      "on_failure": "notify_failure"
+    },
+    {
+      "job_name": "load",
+      "on_success": null,
+      "on_failure": "notify_failure"
+    },
+    {
+      "job_name": "notify_failure",
+      "on_success": null,
+      "on_failure": null
+    }
+  ]
+}
