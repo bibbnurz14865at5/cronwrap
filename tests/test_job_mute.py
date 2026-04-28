@@ -100,3 +100,12 @@ def test_expired_mute_not_active(tmp_path):
     jm = _make(tmp_path)
     jm.mute("old", 1)
     assert jm.is_muted("old", now=time.time() + 9999) is False
+
+
+def test_mute_overwrites_existing_mute(tmp_path):
+    """Re-muting a job should extend (overwrite) the existing mute state."""
+    jm = _make(tmp_path)
+    first = jm.mute("nightly", 60)
+    second = jm.mute("nightly", 7200)
+    assert second.muted_until > first.muted_until
+    assert jm.is_muted("nightly") is True
