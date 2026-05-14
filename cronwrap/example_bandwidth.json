@@ -1,0 +1,6 @@
+{
+  "job_name": "data-export",
+  "max_bytes_per_run": 10485760,
+  "state_dir": "/var/lib/cronwrap/bandwidth",
+  "warn_pct": 75.0
+}
