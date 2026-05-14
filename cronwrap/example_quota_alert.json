@@ -1,0 +1,6 @@
+{
+  "job_name": "nightly-backup",
+  "warn_pct": 75.0,
+  "critical_pct": 90.0,
+  "state_dir": "/var/lib/cronwrap/quota_alert"
+}
